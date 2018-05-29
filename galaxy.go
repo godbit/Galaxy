@@ -26,7 +26,7 @@ type Event struct {
 }
 
 // debug output
-const dbg = false
+const dbg = true
 
 func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 	// Input: D and T
@@ -46,9 +46,50 @@ func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 	// Both matching
 	X = 0
 
+	const nworkers = 4
+	partSize := len(events) / nworkers
+	c := make(chan Result)
+	for i := 0; i < nworkers; i++ {
+		imin := i * partSize
+		imax := (i + 1) * partSize
+		if imax >= len(events) {
+			imax = len(events)
+		}
+		go inner(imin, imax, events, c)
+	}
+	for i := 0; i < nworkers; i++ {
+		result := <-c
+		Ns += result.Ns
+		N2s += result.N2s
+		Nt += result.Nt
+		N2t += result.N2t
+		X += result.X
+	}
+
+	// normalize for double counting
+	Ns = Ns / 2
+	N2s = N2s / 2
+	Nt = Nt / 2
+	N2t = N2t / 2
+	X = X / 2
+
+	return Ns, N2s, Nt, N2t, X
+}
+
+type Result struct {
+	Ns  int
+	N2s int
+	Nt  int
+	N2t int
+	X   int
+}
+
+func inner(imin, imax int, events []Event, c chan Result) {
+	var result Result
+
 	startTime := time.Now()
 
-	for i := range events {
+	for i := imin; i < imax; i++ {
 		if dbg {
 			if i%100 == 0 && i != 0 {
 				fmt.Printf("%d features complete", i)
@@ -62,14 +103,14 @@ func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 			}
 			sdiff := dDiff(events[i].S, events[j].S)
 			if sdiff <= dMax {
-				Ns++
+				result.Ns++
 			}
 			tdiff := tDiff(events[i].T, events[j].T)
 			if tdiff <= tMax {
-				Nt++
+				result.Nt++
 			}
 			if sdiff <= dMax && tdiff <= tMax {
-				X++
+				result.X++
 			}
 			for k := range events {
 				// the second order terms are also only double counted because the join of the pairs is only considered on j
@@ -78,22 +119,16 @@ func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 					// this is just to eliminate the self-pairing
 				}
 				if sdiff <= dMax && dDiff(events[j].S, events[k].S) <= dMax {
-					N2s++
+					result.N2s++
 				}
 				if tdiff <= tMax && tDiff(events[j].T, events[k].T) <= tMax {
-					N2t++
+					result.N2t++
 				}
 			}
 		}
 	}
-	// normalize for double counting
-	Ns = Ns / 2
-	N2s = N2s / 2
-	Nt = Nt / 2
-	N2t = N2t / 2
-	X = X / 2
 
-	return Ns, N2s, Nt, N2t, X
+	c <- result
 }
 
 func dDiff(a, b Point) float64 {
