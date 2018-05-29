@@ -60,13 +60,15 @@ func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 				// this is just to eliminate the self-pairing, not that we are still double counting, i.e., both ij and ji are counted which we later have to normalize
 				continue
 			}
-			if dDiff(events[i].S, events[j].S) <= dMax {
+			sdiff := dDiff(events[i].S, events[j].S)
+			if sdiff <= dMax {
 				Ns++
 			}
-			if tDiff(events[i].T, events[j].T) <= tMax {
+			tdiff := tDiff(events[i].T, events[j].T)
+			if tdiff <= tMax {
 				Nt++
 			}
-			if dDiff(events[i].S, events[j].S) <= dMax && tDiff(events[i].T, events[j].T) <= tMax {
+			if sdiff <= dMax && tdiff <= tMax {
 				X++
 			}
 			for k := range events {
@@ -75,10 +77,10 @@ func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 					continue
 					// this is just to eliminate the self-pairing
 				}
-				if dDiff(events[i].S, events[j].S) <= dMax && dDiff(events[j].S, events[k].S) <= dMax {
+				if sdiff <= dMax && dDiff(events[j].S, events[k].S) <= dMax {
 					N2s++
 				}
-				if tDiff(events[i].T, events[j].T) <= tMax && tDiff(events[j].T, events[k].T) <= tMax {
+				if tdiff <= tMax && tDiff(events[j].T, events[k].T) <= tMax {
 					N2t++
 				}
 			}
