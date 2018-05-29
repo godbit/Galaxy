@@ -1,5 +1,5 @@
 import arcpy
-
+import math
 from datetime import date, timedelta
 
 # ___Config___
@@ -9,7 +9,7 @@ DATAPATH = "../Data/DatePoints/"
 arcpy.env.workspace = DATAPATH
 
 # Shapefile name
-POINT_DATA = "points.shp"
+POINT_DATA = "jan2017_burglaries.shp"
 
 # Name of date attribute field
 DATE_FIELD_NAME = "Date"
@@ -21,7 +21,9 @@ T_MAX = 16
 
 
 def main():
-    Ns, N2s, Nt, N2t, X, n = calcSpaceTimeCluster()
+    n, point_array = index_points()
+
+    Ns, N2s, Nt, N2t, X = calcSpaceTimeCluster(point_array)
 
     print("\nCounts:")
     print("Ns: " + str(Ns))
@@ -49,13 +51,9 @@ def dateFieldValid():
     print("Date field does not exist. Aborting..")
     return False
 
-def calcSpaceTimeCluster():
-    print("====================================================")
-    if not dateFieldValid():
-        return
-
+def calcSpaceTimeCluster(point_array):
+    print("\n\n====================================================")
     print("Init space time cluster calculation")
-    fields = ["FID", DATE_FIELD_NAME, "SHAPE@"]
 
     # Distance matches (first and second order)
     Ns = 0
@@ -69,54 +67,80 @@ def calcSpaceTimeCluster():
     # Num points
     n = 0
 
+    for i in range(len(point_array)):
+        if i % 10 == 0:
+            print(str(i) + " features complete")
 
-    with arcpy.da.SearchCursor(POINT_DATA, fields) as i_cursor:
-        for i_point in i_cursor:
-            n += 1
-            if n % 10 == 0:
-                print(str(n) + " features complete")
-            with arcpy.da.SearchCursor(POINT_DATA, fields) as j_cursor:
-                for j_point in j_cursor:
-                    # Do not count i==j matches
-                    if i_point[0] == j_point[0]:
-                        continue
+        for j in range(len(point_array)):
+            # Do not count i==j matches
+            if point_array[i][0] == point_array[j][0]:
+                continue
 
-                    d_match = False
-                    t_match = False
+            d_match = False
+            t_match = False
 
-                    # Check if below distance threshold
-                    if distance_diff(i_point[2], j_point[2]) <= D_MAX:
-                        d_match = True
-                        Ns += 1
+            # Check if below distance threshold
+            if distance_diff(point_array[i][2], point_array[j][2]) <= D_MAX:
+                d_match = True
+                Ns += 1
 
-                    # Check if below temporal threshold
-                    if time_diff(i_point[1], j_point[1]) <= T_MAX:
-                        t_match = True
-                        Nt += 1
+            # Check if below temporal threshold
+            if time_diff(point_array[i][1], point_array[j][1]) <= T_MAX:
+                t_match = True
+                Nt += 1
 
-                    if d_match and t_match:
-                        X += 1
+            if d_match and t_match:
+                X += 1
 
-                    # Second order counting match j on k
-                    with arcpy.da.SearchCursor(POINT_DATA, fields) as k_cursor:
-                        for k_point in k_cursor:
-                            if i_point[0] == k_point[0] or j_point[0] == k_point[0]:
-                                continue
+            # Second order counting match j on k
+            for k in range(len(point_array)):
+                if point_array[i][0] == point_array[k][0] or point_array[j][0] == point_array[k][0]:
+                    continue
 
-                            if d_match:
-                                if distance_diff(j_point[2], k_point[2]) <= D_MAX:
-                                    N2s += 1
+                if d_match:
+                    if distance_diff(point_array[j][2], point_array[k][2]) <= D_MAX:
+                        N2s += 1
 
-                            if t_match:
-                                if time_diff(j_point[1], k_point[1]) <= T_MAX:
-                                    N2t += 1
+                if t_match:
+                    if time_diff(point_array[j][1], point_array[k][1]) <= T_MAX:
+                        N2t += 1
 
     # Normalize for double counting and return
-    return normalize_double_count(Ns, N2s, Nt, N2t, X, n)
+    return normalize_double_count(Ns, N2s, Nt, N2t, X)
 
 
-def distance_diff(point1_geometry, point2_geometry):
-    dist = point1_geometry.distanceTo(point2_geometry)
+def index_points():
+    print("====================================================")
+    if not dateFieldValid():
+        return
+
+    print("Init point indexing")
+    fields = ["FID", DATE_FIELD_NAME, "SHAPE@"]
+    # Num points
+    n = 0
+
+    point_array = []
+    with arcpy.da.SearchCursor(POINT_DATA, fields) as cursor:
+        for point in cursor:
+            n += 1
+
+            coords = [point[2][0].X, point[2][0].Y]
+
+            # FID, date, [x, y]
+            point_attributes = [point[0], point[1], coords]
+            point_array.append(point_attributes)
+
+    print("Point indexing finished. \nNum points: " + str(n))
+    return n, point_array
+
+def distance_diff(point1_coords, point2_coords):
+    x1 = point1_coords[0]
+    y1 = point1_coords[1]
+    x2 = point2_coords[0]
+    y2 = point2_coords[1]
+
+    dist = math.sqrt(math.pow((x1 - x2), 2) + math.pow((y1 - y2), 2))
+
     return dist
 
 
@@ -125,8 +149,8 @@ def time_diff(date1, date2):
     return abs(delta.days)
 
 
-def normalize_double_count(Ns, N2s, Nt, N2t, X, n):
-    return Ns/2, N2s/2, Nt/2, N2t/2, X/2, n
+def normalize_double_count(Ns, N2s, Nt, N2t, X):
+    return Ns/2, N2s/2, Nt/2, N2t/2, X/2
 
 
 def calc_statistics(Ns, N2s, Nt, N2t, X, n):
