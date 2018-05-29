@@ -4,4 +4,7 @@
 # PyCharm project #
 *.idea/
 *venv/
+
+# Real-world test data.
 data
+*.json

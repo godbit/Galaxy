@@ -24,6 +24,9 @@ import "math"
 //
 // Finally, let X be the number of case pairs that are close both in time and
 // space.
+//
+// N2s is the number of pairs of `case pairs close in space` that have one case
+// in common and where N2t is defined equivalently for time.
 func Test(Ns, N2s, Nt, N2t, X, n float64) (N, E, V float64) {
 	// Number of pairs
 	N = n * (n - 1) / 2
