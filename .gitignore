@@ -4,3 +4,4 @@
 # PyCharm project #
 *.idea/
 *venv/
+data
