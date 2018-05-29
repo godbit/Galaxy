@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 
 	galaxy "github.com/godbit/Galaxy"
 	"github.com/godbit/Galaxy/knox"
@@ -28,8 +29,17 @@ func main() {
 		fmt.Println("n: ", n)
 
 		N, E, V := knox.Test(float64(Ns), float64(N2s), float64(Nt), float64(N2t), float64(X), float64(n))
+
+		std := math.Sqrt(V)
+
+		fmt.Println("\nStatistics:")
 		fmt.Println("N:", N)
 		fmt.Println("E:", E)
 		fmt.Println("V:", V)
+		fmt.Println("Std:", std)
+		fmt.Println("\nZ-score:")
+		diff := math.Abs(float64(X) - float64(E))
+		Z := diff / std
+		fmt.Println("Z:", Z)
 	}
 }

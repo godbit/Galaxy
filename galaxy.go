@@ -12,7 +12,7 @@ const (
 	// max distance in meters
 	dMax = 1800
 	// max temporal difference in days
-	tMax = 16 * time.Hour * 24
+	tMax = 16*time.Hour*24 + time.Hour
 )
 
 type Point struct {
