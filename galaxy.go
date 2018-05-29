@@ -26,7 +26,7 @@ type Event struct {
 }
 
 // debug output
-const dbg = true
+const dbg = false
 
 func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 	// Input: D and T
@@ -132,7 +132,9 @@ func inner(imin, imax int, events []Event, c chan Result) {
 }
 
 func dDiff(a, b Point) float64 {
-	return math.Sqrt(math.Pow(a.X-b.X, 2) + math.Pow(a.Y-b.Y, 2))
+	xdiff := a.X - b.X
+	ydiff := a.Y - b.Y
+	return math.Sqrt(xdiff*xdiff + ydiff*ydiff)
 }
 
 func tDiff(a, b time.Time) time.Duration {
