@@ -8,3 +8,7 @@
 # Real-world test data.
 data
 *.json
+
+# Go benchmark files
+*.out
+*.test
