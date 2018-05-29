@@ -186,8 +186,13 @@ def calc_statistics(Ns, N2s, Nt, N2t, X, n):
     return N, E, V
 
 def export_to_csv(point_array):
-    with open(EXPORT_PATH + "/" + POINT_DATA[:-4] + ".json", 'w') as exportfile:
+    f_name = EXPORT_PATH + POINT_DATA[:-4] + ".json"
+    with open(f_name, 'w') as exportfile:
         json.dump(point_array, exportfile, indent=4, default=str)
+        print("\n====================================================")
+        print("Exported all points as json.")
+        print("New file - " + f_name)
+        print("====================================================")
 
 
 main()
