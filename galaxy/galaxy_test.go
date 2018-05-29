@@ -3,7 +3,7 @@ package galaxy_test
 import (
 	"testing"
 
-	galaxy "github.com/godbit/Galaxy"
+	"github.com/godbit/Galaxy/galaxy"
 )
 
 func BenchmarkCluster(b *testing.B) {

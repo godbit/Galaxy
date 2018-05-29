@@ -6,7 +6,7 @@ import (
 	"log"
 	"math"
 
-	galaxy "github.com/godbit/Galaxy"
+	"github.com/godbit/Galaxy/galaxy"
 	"github.com/godbit/Galaxy/knox"
 )
 
