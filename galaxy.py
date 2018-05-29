@@ -43,7 +43,7 @@ def main():
     print("X: " + str(X))
     print("n: " + str(n))
 
-    N, E, V = calc_statistics(Ns, N2s, Nt, N2t, X, n)
+    N, E, V = calc_statistics(float(Ns), float(N2s), float(Nt), float(N2t), float(X), float(n))
     std = math.sqrt(V)
 
     print("\nStatistics:")
