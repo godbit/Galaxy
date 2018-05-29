@@ -92,7 +92,7 @@ def calcSpaceTimeCluster(point_array):
 
         for j in range(len(point_array)):
             # Do not count i==j matches
-            if point_array[i][0] == point_array[j][0]:
+            if i == j:
                 continue
 
             d_match = False
@@ -113,16 +113,14 @@ def calcSpaceTimeCluster(point_array):
 
             # Second order counting match j on k
             for k in range(len(point_array)):
-                if point_array[i][0] == point_array[k][0] or point_array[j][0] == point_array[k][0]:
+                if i == k or j == k:
                     continue
 
-                if d_match:
-                    if distance_diff(point_array[j][2], point_array[k][2]) <= D_MAX:
-                        N2s += 1
+                if d_match and distance_diff(point_array[j][2], point_array[k][2]) <= D_MAX:
+                    N2s += 1
 
-                if t_match:
-                    if time_diff(point_array[j][1], point_array[k][1]) <= T_MAX:
-                        N2t += 1
+                if t_match and time_diff(point_array[j][1], point_array[k][1]) <= T_MAX:
+                    N2t += 1
 
     print("====================================================")
     # Normalize for double counting and return
