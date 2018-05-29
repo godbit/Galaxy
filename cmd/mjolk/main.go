@@ -9,6 +9,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/godbit/Galaxy/knox"
 	"github.com/pkg/errors"
 	"github.com/simplereach/timeutils"
 )
@@ -31,7 +32,7 @@ func main() {
 		n := len(events)
 		fmt.Println("n: ", n)
 
-		N, E, V := calcStats(float64(Ns), float64(N2s), float64(Nt), float64(N2t), float64(X), float64(n))
+		N, E, V := knox.Test(float64(Ns), float64(N2s), float64(Nt), float64(N2t), float64(X), float64(n))
 		fmt.Println("N:", N)
 		fmt.Println("E:", E)
 		fmt.Println("V:", V)
@@ -154,22 +155,6 @@ func calcSpaceTimeCluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 	//V[X] = foo // …the formula on page 545 in Kulldorff et al.
 	// V[X] should be equal to E[X] for Poisson distribution and should be close to each other based on the calculations if the variable X is indeed approximately Poisson distributed.
 	//pretty.Println(V[X])
-}
-
-func calcStats(Ns, N2s, Nt, N2t, X, n float64) (N, E, V float64) {
-	// Number of pairs
-	//N = n * n // TODO: Remove?
-	N = n * (n - 1) / 2
-
-	// Expected value
-	E = Nt * Ns / N
-
-	// Variance
-	V = Ns*Nt/N + 4*N2s*N2t/(n*(n-1)*(n-2)) +
-		4*(Ns*(Ns-1)-N2s)*(Nt*(Nt-1)-N2t)/(n*(n-1)*(n-2)*(n-3)) -
-		(Ns*Nt/N)*(Ns*Nt/N)
-
-	return N, E, V
 }
 
 func dDiff(a, b Point) float64 {
