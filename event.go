@@ -3,9 +3,9 @@ package galaxy
 import (
 	"encoding/json"
 	"io/ioutil"
+	"time"
 
 	"github.com/pkg/errors"
-	"github.com/simplereach/timeutils"
 )
 
 // ParseFile returns the events of the given JSON file.
@@ -32,7 +32,7 @@ func ParseFile(jsonPath string) ([]Event, error) {
 // parseEvent parses the given raw event from Python JSON format.
 func parseEvent(data []interface{}) (Event, error) {
 	coords := data[2].([]interface{})
-	date, err := timeutils.ParseDateString(data[1].(string))
+	date, err := time.Parse("2006-01-02 15:04:05", data[1].(string))
 	if err != nil {
 		return Event{}, errors.WithStack(err)
 	}
