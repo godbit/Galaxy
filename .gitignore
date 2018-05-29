@@ -2,5 +2,5 @@
 *.pyc
 
 # PyCharm project #
-*/.idea/
-*/venv/
+*.idea/
+*venv/
