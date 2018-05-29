@@ -1,0 +1,6 @@
+# Compiled python #
+*.pyc
+
+# PyCharm project #
+*/.idea/
+*/venv/
