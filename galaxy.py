@@ -1,5 +1,6 @@
 import arcpy
 import math
+import time
 from datetime import date, timedelta
 
 # ___Config___
@@ -34,11 +35,18 @@ def main():
     print("n: " + str(n))
 
     N, E, V = calc_statistics(Ns, N2s, Nt, N2t, X, n)
+    std = math.sqrt(V)
 
     print("\nStatistics:")
     print("N: " + str(N))
     print("E: " + str(E))
     print("V: " + str(V))
+    print("Std: " + str(std))
+
+    print("\nZ-score:")
+    diff = abs(X - E)
+    Z = diff/std
+    print("Z: " + str(Z))
 
 
 def dateFieldValid():
@@ -67,9 +75,11 @@ def calcSpaceTimeCluster(point_array):
     # Num points
     n = 0
 
+    startTime = time.time()
     for i in range(len(point_array)):
-        if i % 10 == 0:
+        if i % 100 == 0 and i != 0:
             print(str(i) + " features complete")
+            print("Time elapsed: " + str(round(time.time() - startTime, 2)) + " s")
 
         for j in range(len(point_array)):
             # Do not count i==j matches
@@ -105,6 +115,7 @@ def calcSpaceTimeCluster(point_array):
                     if time_diff(point_array[j][1], point_array[k][1]) <= T_MAX:
                         N2t += 1
 
+    print("====================================================")
     # Normalize for double counting and return
     return normalize_double_count(Ns, N2s, Nt, N2t, X)
 
