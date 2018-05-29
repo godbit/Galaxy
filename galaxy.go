@@ -25,10 +25,15 @@ type Event struct {
 	T time.Time
 }
 
+// debug output
+const dbg = false
+
 func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 	// Input: D and T
-	fmt.Println("\n\n====================================================")
-	fmt.Println("Init space time cluster calculation")
+	if dbg {
+		fmt.Println("\n\n====================================================")
+		fmt.Println("Init space time cluster calculation")
+	}
 
 	// Distance matches (first and second order)
 	Ns = 0
@@ -44,9 +49,11 @@ func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 	startTime := time.Now()
 
 	for i := range events {
-		if i%100 == 0 && i != 0 {
-			fmt.Printf("%d features complete", i)
-			fmt.Println("Time elapsed:", time.Since(startTime))
+		if dbg {
+			if i%100 == 0 && i != 0 {
+				fmt.Printf("%d features complete", i)
+				fmt.Println("Time elapsed:", time.Since(startTime))
+			}
 		}
 		for j := range events {
 			if i == j {
