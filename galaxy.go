@@ -12,7 +12,7 @@ const (
 	// max distance in meters
 	dMax = 1800
 	// max temporal difference in days
-	tMax = 16*time.Hour*24 + time.Hour
+	tMax = int64(16*time.Hour*24 + time.Hour)
 )
 
 type Point struct {
@@ -22,7 +22,7 @@ type Point struct {
 
 type Event struct {
 	S Point
-	T time.Time
+	T int64 //time.Time
 }
 
 // debug output
@@ -137,9 +137,9 @@ func dDiff(a, b Point) float64 {
 	return math.Sqrt(xdiff*xdiff + ydiff*ydiff)
 }
 
-func tDiff(a, b time.Time) time.Duration {
-	if a.Before(b) {
-		return b.Sub(a)
+func tDiff(a, b int64) int64 {
+	if a < b {
+		return b - a
 	}
-	return a.Sub(b)
+	return a - b
 }

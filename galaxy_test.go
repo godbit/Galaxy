@@ -7,7 +7,7 @@ import (
 )
 
 func BenchmarkCluster(b *testing.B) {
-	events, err := galaxy.ParseFile("testdata/data/ten.json")
+	events, err := galaxy.ParseFile("testdata/data/month.json")
 	if err != nil {
 		b.Errorf("%+v", err)
 	}

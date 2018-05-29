@@ -37,7 +37,7 @@ func parseEvent(data []interface{}) (Event, error) {
 		return Event{}, errors.WithStack(err)
 	}
 	return Event{
-		T: date,
+		T: date.UnixNano(),
 		S: Point{X: coords[0].(float64), Y: coords[1].(float64)},
 	}, nil
 }
