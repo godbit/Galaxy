@@ -1,6 +1,7 @@
 import arcpy
 import math
 import time
+import json
 from datetime import date, timedelta
 
 # ___Config___
@@ -10,7 +11,7 @@ DATAPATH = "../Data/DatePoints/"
 arcpy.env.workspace = DATAPATH
 
 # Shapefile name
-POINT_DATA = "jan2017_burglaries.shp"
+POINT_DATA = "points.shp"
 
 # Name of date attribute field
 DATE_FIELD_NAME = "Date"
@@ -21,8 +22,16 @@ D_MAX = 1800
 T_MAX = 16
 
 
+# Export data for other implementaions
+EXPORT = True
+EXPORT_PATH = "../Data/DatePoints/Json/"
+
 def main():
     n, point_array = index_points()
+
+    if EXPORT:
+        export_to_csv(point_array)
+        return
 
     Ns, N2s, Nt, N2t, X = calcSpaceTimeCluster(point_array)
 
@@ -175,6 +184,16 @@ def calc_statistics(Ns, N2s, Nt, N2t, X, n):
         (Ns*Nt/N)*(Ns*Nt/N)
 
     return N, E, V
+
+def export_to_csv(point_array):
+    f_name = EXPORT_PATH + POINT_DATA[:-4] + ".json"
+    with open(f_name, 'w') as exportfile:
+        json.dump(point_array, exportfile, indent=4, default=str)
+        print("\n====================================================")
+        print("Exported all points as json.")
+        print("New file - " + f_name)
+        print("====================================================")
+
 
 main()
 
