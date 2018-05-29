@@ -194,6 +194,3 @@ def export_to_csv(point_array):
 
 
 main()
-
-
-
