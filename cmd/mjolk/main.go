@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"math"
+	"os"
+	"os/signal"
 
 	"github.com/godbit/Galaxy/galaxy"
 	"github.com/godbit/Galaxy/knox"
@@ -17,7 +20,21 @@ func main() {
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}
-		Ns, N2s, Nt, N2t, X := galaxy.Cluster(events)
+
+		// Create context to interrupt calculation and still receive partial
+		// results.
+		ctx, cancel := context.WithCancel(context.Background())
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt)
+		go func() {
+			select {
+			case <-sig:
+				cancel()
+				return
+			}
+		}()
+
+		Ns, N2s, Nt, N2t, X := galaxy.Cluster(ctx, events)
 
 		fmt.Println("\nCounts:")
 		fmt.Println("Ns: ", Ns)

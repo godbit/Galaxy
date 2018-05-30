@@ -3,7 +3,9 @@
 package galaxy
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"math"
 	"time"
 )
@@ -28,7 +30,7 @@ type Event struct {
 // debug output
 const dbg = false
 
-func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
+func Cluster(ctx context.Context, events []Event) (Ns, N2s, Nt, N2t, X int) {
 	// Input: D and T
 	if dbg {
 		fmt.Println("\n\n====================================================")
@@ -49,13 +51,14 @@ func Cluster(events []Event) (Ns, N2s, Nt, N2t, X int) {
 	const nworkers = 4
 	partSize := len(events) / nworkers
 	c := make(chan Result)
+
 	for i := 0; i < nworkers; i++ {
 		imin := i * partSize
 		imax := (i + 1) * partSize
 		if imax >= len(events) {
 			imax = len(events)
 		}
-		go inner(imin, imax, events, c)
+		go inner(ctx, imin, imax, events, c)
 	}
 	for i := 0; i < nworkers; i++ {
 		result := <-c
@@ -84,18 +87,28 @@ type Result struct {
 	X   int
 }
 
-func inner(imin, imax int, events []Event, c chan Result) {
+func inner(ctx context.Context, imin, imax int, events []Event, c chan Result) {
 	var result Result
 
 	startTime := time.Now()
 
 	for i := imin; i < imax; i++ {
+		// Send partial results on interrupt.
+		select {
+		case <-ctx.Done():
+			log.Printf("sending partial results for i = %d in range [%d, %d)", i, imin, imax)
+			c <- result
+			return
+		default:
+		}
+
 		if dbg {
 			if i%100 == 0 && i != 0 {
 				fmt.Printf("%d features complete", i)
 				fmt.Println("Time elapsed:", time.Since(startTime))
 			}
 		}
+
 		for j := range events {
 			if i == j {
 				// this is just to eliminate the self-pairing, not that we are still double counting, i.e., both ij and ji are counted which we later have to normalize
