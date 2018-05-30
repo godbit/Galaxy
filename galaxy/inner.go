@@ -14,7 +14,7 @@ func init() {
 	log.Println("inner loop in Go")
 }
 
-func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
+func inner(ctx context.Context, imin, imax int64, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
 	var result Result
 
 	for i := imin; i < imax; i++ {
@@ -37,7 +37,7 @@ func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar,
 		}
 
 		for j := range events {
-			if i == j {
+			if i == int64(j) {
 				// this is just to eliminate the self-pairing, not that we are still double counting, i.e., both ij and ji are counted which we later have to normalize
 				continue
 			}
@@ -54,7 +54,7 @@ func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar,
 			}
 			for k := range events {
 				// the second order terms are also only double counted because the join of the pairs is only considered on j
-				if i == k || j == k {
+				if i == int64(k) || j == k {
 					continue
 					// this is just to eliminate the self-pairing
 				}
