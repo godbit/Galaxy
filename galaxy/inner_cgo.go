@@ -35,11 +35,11 @@ int64_t tdiff_c(int64_t a, int64_t b) {
 }
 
 typedef struct {
-	int Ns;
-	int N2s;
-	int Nt;
-	int N2t;
-	int X;
+	int64_t Ns;
+	int64_t N2s;
+	int64_t Nt;
+	int64_t N2t;
+	int64_t X;
 } Result;
 
 typedef struct {
@@ -52,11 +52,11 @@ typedef struct {
 #define D_MAX 1800
 #define T_MAX (16*Hour*24 + Hour)
 
-Result inner(int imin, int imax, Event *events, int len) {
+Result inner(int64_t imin, int64_t imax, Event *events, int64_t len) {
 	Result result;
 
-	for (int i = imin; i < imax; i++) {
-		for (int j = 0; j < len; j++) {
+	for (int64_t i = imin; i < imax; i++) {
+		for (int64_t j = 0; j < len; j++) {
 			if (i == j) {
 				// this is just to eliminate the self-pairing, not that we are still double counting, i.e., both ij and ji are counted which we later have to normalize
 				continue;
@@ -72,7 +72,7 @@ Result inner(int imin, int imax, Event *events, int len) {
 			if (sdiff <= D_MAX && tdiff <= T_MAX) {
 				result.X++;
 			}
-			for (int k = 0; k < len; k++) {
+			for (int64_t k = 0; k < len; k++) {
 				// the second order terms are also only double counted because the join of the pairs is only considered on j
 				if (i == k || j == k) {
 					continue;
@@ -97,14 +97,14 @@ func init() {
 	log.Println("inner loop in C")
 }
 
-func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
-	r := C.inner(C.int(imin), C.int(imax), (*C.Event)(unsafe.Pointer(&events[0])), C.int(len(events)))
+func inner(ctx context.Context, imin, imax int64, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
+	r := C.inner(C.int64_t(imin), C.int64_t(imax), (*C.Event)(unsafe.Pointer(&events[0])), C.int64_t(len(events)))
 	result := Result{
-		Ns:  int(r.Ns),
-		N2s: int(r.N2s),
-		Nt:  int(r.Nt),
-		N2t: int(r.N2t),
-		X:   int(r.X),
+		Ns:  int64(r.Ns),
+		N2s: int64(r.N2s),
+		Nt:  int64(r.Nt),
+		N2t: int64(r.N2t),
+		X:   int64(r.X),
 	}
 	c <- result
 }

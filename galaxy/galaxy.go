@@ -30,7 +30,7 @@ type Event struct {
 	T int64 //time.Time
 }
 
-func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2t, X int) {
+func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2t, X int64) {
 	// Input: D and T
 	if verbose {
 		fmt.Println("Init space time cluster calculation")
@@ -48,18 +48,18 @@ func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2
 	X = 0
 
 	const nworkers = 4
-	partSize := len(events) / nworkers
+	partSize := int64(len(events)) / nworkers
 	c := make(chan Result)
 
 	bar, err := barcli.New(len(events))
 	if err != nil {
 		log.Fatalf("%+v", errors.WithStack(err))
 	}
-	for i := 0; i < nworkers; i++ {
+	for i := int64(0); i < nworkers; i++ {
 		imin := i * partSize
 		imax := (i + 1) * partSize
-		if imax >= len(events) {
-			imax = len(events)
+		if imax >= int64(len(events)) {
+			imax = int64(len(events))
 		}
 		go inner(ctx, imin, imax, events, bar, verbose, c)
 	}
@@ -87,11 +87,11 @@ func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2
 }
 
 type Result struct {
-	Ns  int
-	N2s int
-	Nt  int
-	N2t int
-	X   int
+	Ns  int64
+	N2s int64
+	Nt  int64
+	N2t int64
+	X   int64
 }
 
 func dDiff(a, b Point) float64 {
