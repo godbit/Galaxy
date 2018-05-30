@@ -96,7 +96,7 @@ func inner(ctx context.Context, imin, imax int, events []Event, c chan Result) {
 		// Send partial results on interrupt.
 		select {
 		case <-ctx.Done():
-			log.Printf("sending partial results for i = %d in range [%d, %d)", i, imin, imax)
+			log.Printf("sending partial results for i = %d (%d iterations) in range [%d, %d)", i, i-imin, imin, imax)
 			c <- result
 			return
 		default:
