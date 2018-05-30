@@ -11,6 +11,7 @@ import (
 )
 
 /*
+#cgo CFLAGS: -O3
 #cgo LDFLAGS: -lm
 
 #include <stdint.h>
