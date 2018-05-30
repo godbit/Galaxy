@@ -8,6 +8,9 @@ import (
 	"log"
 	"math"
 	"time"
+
+	"github.com/karlek/progress/barcli"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -30,7 +33,6 @@ type Event struct {
 func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2t, X int) {
 	// Input: D and T
 	if verbose {
-		fmt.Println("\n\n====================================================")
 		fmt.Println("Init space time cluster calculation")
 	}
 
@@ -49,13 +51,17 @@ func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2
 	partSize := len(events) / nworkers
 	c := make(chan Result)
 
+	bar, err := barcli.New(len(events))
+	if err != nil {
+		log.Fatalf("%+v", errors.WithStack(err))
+	}
 	for i := 0; i < nworkers; i++ {
 		imin := i * partSize
 		imax := (i + 1) * partSize
 		if imax >= len(events) {
 			imax = len(events)
 		}
-		go inner(ctx, imin, imax, events, verbose, c)
+		go inner(ctx, imin, imax, events, bar, verbose, c)
 	}
 	for i := 0; i < nworkers; i++ {
 		result := <-c
@@ -64,6 +70,10 @@ func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2
 		Nt += result.Nt
 		N2t += result.N2t
 		X += result.X
+	}
+	if verbose {
+		// Print last status update.
+		bar.Print()
 	}
 
 	// normalize for double counting
@@ -84,15 +94,14 @@ type Result struct {
 	X   int
 }
 
-func inner(ctx context.Context, imin, imax int, events []Event, verbose bool, c chan Result) {
+func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
 	var result Result
-
-	startTime := time.Now()
 
 	for i := imin; i < imax; i++ {
 		// Send partial results on interrupt.
 		select {
 		case <-ctx.Done():
+			fmt.Println()
 			log.Printf("sending partial results for i = %d (%d iterations) in range [%d, %d)", i, i-imin, imin, imax)
 			c <- result
 			return
@@ -100,9 +109,10 @@ func inner(ctx context.Context, imin, imax int, events []Event, verbose bool, c 
 		}
 
 		if verbose {
-			if i%100 == 0 && i != 0 {
-				fmt.Printf("%d features complete", i)
-				fmt.Println("Time elapsed:", time.Since(startTime))
+			bar.Inc()
+			// Only print status updates from the first worker Go routine.
+			if imin == 0 {
+				bar.Print()
 			}
 		}
 
