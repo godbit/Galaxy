@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/godbit/Galaxy/galaxy"
 	"github.com/godbit/Galaxy/knox"
@@ -29,7 +30,7 @@ func main() {
 		// results.
 		ctx, cancel := context.WithCancel(context.Background())
 		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, os.Interrupt)
+		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 		go func() {
 			select {
 			case <-sig:
