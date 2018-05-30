@@ -6,11 +6,26 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"unsafe"
 
 	"github.com/karlek/progress/barcli"
 )
 
+// #cgo LDFLAGS: -lm
+//
 // #include <stdint.h>
+// #include <math.h>
+//
+// typedef struct {
+//    double X;
+//    double Y;
+// } Point;
+//
+// double ddiff_c(Point a, Point b) {
+//    double xdiff = a.X - b.X;
+//    double ydiff = a.Y - b.Y;
+//    return sqrt(xdiff*xdiff + ydiff*ydiff);
+// }
 //
 // int64_t tdiff_c(int64_t a, int64_t b) {
 //    if (a < b) {
@@ -51,7 +66,7 @@ func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar,
 				// this is just to eliminate the self-pairing, not that we are still double counting, i.e., both ij and ji are counted which we later have to normalize
 				continue
 			}
-			sdiff := dDiff(events[i].S, events[j].S)
+			sdiff := float64(C.ddiff_c(*(*C.Point)(unsafe.Pointer(&events[i].S)), *(*C.Point)(unsafe.Pointer(&events[j].S))))
 			if sdiff <= dMax {
 				result.Ns++
 			}
@@ -68,7 +83,7 @@ func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar,
 					continue
 					// this is just to eliminate the self-pairing
 				}
-				if sdiff <= dMax && dDiff(events[j].S, events[k].S) <= dMax {
+				if sdiff <= dMax && float64(C.ddiff_c(*(*C.Point)(unsafe.Pointer(&events[j].S)), *(*C.Point)(unsafe.Pointer(&events[k].S)))) <= dMax {
 					result.N2s++
 				}
 				if tdiff <= tMax && int64(C.tdiff_c(C.int64_t(events[j].T), C.int64_t(events[k].T))) <= tMax {
