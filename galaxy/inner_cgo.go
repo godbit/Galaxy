@@ -49,11 +49,11 @@ typedef struct {
 
 #define Hour 3600000000000 // nanoseconds
 
-#define D_MAX 1800
+#define D_MAX 1800.0
 #define T_MAX (16*Hour*24 + Hour)
 
 Result inner(int64_t imin, int64_t imax, Event *events, int64_t len) {
-	Result result;
+	Result result = {};
 
 	for (int64_t i = imin; i < imax; i++) {
 		for (int64_t j = 0; j < len; j++) {
@@ -65,7 +65,7 @@ Result inner(int64_t imin, int64_t imax, Event *events, int64_t len) {
 			if (sdiff <= D_MAX) {
 				result.Ns++;
 			}
-			double tdiff = tdiff_c(events[i].T, events[j].T);
+			int64_t tdiff = tdiff_c(events[i].T, events[j].T);
 			if (tdiff <= T_MAX) {
 				result.Nt++;
 			}

@@ -14,6 +14,8 @@ import (
 	"github.com/godbit/Galaxy/knox"
 )
 
+var cgo = false
+
 func main() {
 	var (
 		verbose bool
@@ -28,16 +30,20 @@ func main() {
 
 		// Create context to interrupt calculation and still receive partial
 		// results.
-		ctx, cancel := context.WithCancel(context.Background())
-		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-		go func() {
-			select {
-			case <-sig:
-				cancel()
-				return
-			}
-		}()
+		ctx := context.TODO()
+		if !cgo {
+			var cancel func()
+			ctx, cancel = context.WithCancel(context.Background())
+			sig := make(chan os.Signal, 1)
+			signal.Notify(sig, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+			go func() {
+				select {
+				case <-sig:
+					cancel()
+					return
+				}
+			}()
+		}
 
 		Ns, N2s, Nt, N2t, X := galaxy.Cluster(ctx, events, verbose)
 
