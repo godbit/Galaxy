@@ -27,12 +27,9 @@ type Event struct {
 	T int64 //time.Time
 }
 
-// debug output
-const dbg = false
-
-func Cluster(ctx context.Context, events []Event) (Ns, N2s, Nt, N2t, X int) {
+func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2t, X int) {
 	// Input: D and T
-	if dbg {
+	if verbose {
 		fmt.Println("\n\n====================================================")
 		fmt.Println("Init space time cluster calculation")
 	}
@@ -58,7 +55,7 @@ func Cluster(ctx context.Context, events []Event) (Ns, N2s, Nt, N2t, X int) {
 		if imax >= len(events) {
 			imax = len(events)
 		}
-		go inner(ctx, imin, imax, events, c)
+		go inner(ctx, imin, imax, events, verbose, c)
 	}
 	for i := 0; i < nworkers; i++ {
 		result := <-c
@@ -87,7 +84,7 @@ type Result struct {
 	X   int
 }
 
-func inner(ctx context.Context, imin, imax int, events []Event, c chan Result) {
+func inner(ctx context.Context, imin, imax int, events []Event, verbose bool, c chan Result) {
 	var result Result
 
 	startTime := time.Now()
@@ -102,7 +99,7 @@ func inner(ctx context.Context, imin, imax int, events []Event, c chan Result) {
 		default:
 		}
 
-		if dbg {
+		if verbose {
 			if i%100 == 0 && i != 0 {
 				fmt.Printf("%d features complete", i)
 				fmt.Println("Time elapsed:", time.Since(startTime))

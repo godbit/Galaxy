@@ -14,6 +14,10 @@ import (
 )
 
 func main() {
+	var (
+		verbose bool
+	)
+	flag.BoolVar(&verbose, "v", false, "verbose output")
 	flag.Parse()
 	for _, jsonPath := range flag.Args() {
 		events, err := galaxy.ParseFile(jsonPath)
@@ -34,7 +38,7 @@ func main() {
 			}
 		}()
 
-		Ns, N2s, Nt, N2t, X := galaxy.Cluster(ctx, events)
+		Ns, N2s, Nt, N2t, X := galaxy.Cluster(ctx, events, verbose)
 
 		fmt.Println("\nCounts:")
 		fmt.Println("Ns: ", Ns)
