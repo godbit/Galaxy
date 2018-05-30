@@ -13,7 +13,9 @@ import (
 func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
 	var result Result
 
-	fmt.Println("inner loop in Go")
+	if verbose {
+		fmt.Println("inner loop in Go")
+	}
 
 	for i := imin; i < imax; i++ {
 		// Send partial results on interrupt.

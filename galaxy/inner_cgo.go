@@ -10,10 +10,22 @@ import (
 	"github.com/karlek/progress/barcli"
 )
 
+// #include <stdint.h>
+//
+// int64_t tdiff_c(int64_t a, int64_t b) {
+//    if (a < b) {
+//       return b-a;
+//    }
+//    return b-a;
+// }
+import "C"
+
 func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
 	var result Result
 
-	fmt.Println("inner loop in C")
+	if verbose {
+		fmt.Println("inner loop in C")
+	}
 
 	for i := imin; i < imax; i++ {
 		// Send partial results on interrupt.
@@ -43,7 +55,7 @@ func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar,
 			if sdiff <= dMax {
 				result.Ns++
 			}
-			tdiff := tDiff(events[i].T, events[j].T)
+			tdiff := int64(C.tdiff_c(C.int64_t(events[i].T), C.int64_t(events[j].T)))
 			if tdiff <= tMax {
 				result.Nt++
 			}
@@ -59,7 +71,7 @@ func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar,
 				if sdiff <= dMax && dDiff(events[j].S, events[k].S) <= dMax {
 					result.N2s++
 				}
-				if tdiff <= tMax && tDiff(events[j].T, events[k].T) <= tMax {
+				if tdiff <= tMax && int64(C.tdiff_c(C.int64_t(events[j].T), C.int64_t(events[k].T))) <= tMax {
 					result.N2t++
 				}
 			}
