@@ -14,18 +14,18 @@ import (
 //
 // int64_t tdiff_c(int64_t a, int64_t b) {
 //    if (a < b) {
-//       return b-a;
+//       return b - a;
 //    }
-//    return b-a;
+//    return a - b;
 // }
 import "C"
 
+func init() {
+	log.Println("inner loop in C")
+}
+
 func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
 	var result Result
-
-	if verbose {
-		fmt.Println("inner loop in C")
-	}
 
 	for i := imin; i < imax; i++ {
 		// Send partial results on interrupt.

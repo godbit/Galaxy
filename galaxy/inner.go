@@ -10,12 +10,12 @@ import (
 	"github.com/karlek/progress/barcli"
 )
 
+func init() {
+	log.Println("inner loop in Go")
+}
+
 func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
 	var result Result
-
-	if verbose {
-		fmt.Println("inner loop in Go")
-	}
 
 	for i := imin; i < imax; i++ {
 		// Send partial results on interrupt.
