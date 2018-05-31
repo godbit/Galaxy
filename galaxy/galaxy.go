@@ -13,13 +13,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	// max distance in meters
-	dMax = 1800
-	// max temporal difference in days
-	tMax = int64(16*time.Hour*24 + time.Hour)
-)
-
 type Point struct {
 	X float64
 	Y float64
@@ -30,11 +23,14 @@ type Event struct {
 	T int64 //time.Time
 }
 
-func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2t, X int) {
+func Cluster(ctx context.Context, events []Event, dMax float64, tMax int64, verbose bool) (Ns, N2s, Nt, N2t, X int) {
 	// Input: D and T
 	if verbose {
 		fmt.Println("Init space time cluster calculation")
 	}
+
+	// Convert tMax from days to nanoseconds
+	tMax = tMax*int64(time.Hour)*24 + int64(time.Hour)
 
 	// Distance matches (first and second order)
 	Ns = 0
@@ -61,7 +57,7 @@ func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2
 		if imax >= len(events) {
 			imax = len(events)
 		}
-		go inner(ctx, imin, imax, events, bar, verbose, c)
+		go inner(ctx, imin, imax, dMax, tMax, events, bar, verbose, c)
 	}
 	for i := 0; i < nworkers; i++ {
 		result := <-c
@@ -94,7 +90,7 @@ type Result struct {
 	X   int
 }
 
-func inner(ctx context.Context, imin, imax int, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
+func inner(ctx context.Context, imin, imax int, dMax float64, tMax int64, events []Event, bar *barcli.Bar, verbose bool, c chan Result) {
 	var result Result
 
 	for i := imin; i < imax; i++ {

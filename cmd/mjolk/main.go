@@ -17,8 +17,12 @@ import (
 func main() {
 	var (
 		verbose bool
+		dMax	float64
+		tMax	int64
 	)
 	flag.BoolVar(&verbose, "v", false, "verbose output")
+	flag.Float64Var(&dMax, "dist", 1800, "distance in meters")
+	flag.Int64Var(&tMax, "time", 16, "time in number of days")
 	flag.Parse()
 	for _, jsonPath := range flag.Args() {
 		events, err := galaxy.ParseFile(jsonPath)
@@ -39,7 +43,7 @@ func main() {
 			}
 		}()
 
-		Ns, N2s, Nt, N2t, X := galaxy.Cluster(ctx, events, verbose)
+		Ns, N2s, Nt, N2t, X := galaxy.Cluster(ctx, events, dMax, tMax, verbose)
 
 		fmt.Println("\nCounts:")
 		fmt.Println("Ns: ", Ns)
