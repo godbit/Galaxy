@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/godbit/Galaxy/galaxy"
@@ -18,9 +19,11 @@ var cgo = false
 
 func main() {
 	var (
-		verbose bool
+		verbose  bool
+		nworkers int64
 	)
 	flag.BoolVar(&verbose, "v", false, "verbose output")
+	flag.Int64Var(&nworkers, "workers", int64(runtime.NumCPU()), "number of workers")
 	flag.Parse()
 	for _, jsonPath := range flag.Args() {
 		events, err := galaxy.ParseFile(jsonPath)
@@ -45,7 +48,7 @@ func main() {
 			}()
 		}
 
-		Ns, N2s, Nt, N2t, X := galaxy.Cluster(ctx, events, verbose)
+		Ns, N2s, Nt, N2t, X := galaxy.Cluster(ctx, events, nworkers, verbose)
 
 		fmt.Println("\nCounts:")
 		fmt.Println("Ns: ", Ns)

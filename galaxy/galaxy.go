@@ -30,7 +30,7 @@ type Event struct {
 	T int64 //time.Time
 }
 
-func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2t, X int64) {
+func Cluster(ctx context.Context, events []Event, nworkers int64, verbose bool) (Ns, N2s, Nt, N2t, X int64) {
 	// Input: D and T
 	if verbose {
 		fmt.Println("Init space time cluster calculation")
@@ -47,7 +47,6 @@ func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2
 	// Both matching
 	X = 0
 
-	const nworkers = 4
 	partSize := int64(len(events)) / nworkers
 	c := make(chan Result)
 
@@ -63,7 +62,7 @@ func Cluster(ctx context.Context, events []Event, verbose bool) (Ns, N2s, Nt, N2
 		}
 		go inner(ctx, imin, imax, events, bar, verbose, c)
 	}
-	for i := 0; i < nworkers; i++ {
+	for i := int64(0); i < nworkers; i++ {
 		result := <-c
 		Ns += result.Ns
 		N2s += result.N2s
