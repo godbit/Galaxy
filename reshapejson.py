@@ -1,5 +1,6 @@
 import arcpy
 import json
+import os
 
 
 # ___Config___
@@ -17,6 +18,7 @@ DATE_FIELD_NAME = "Date"
 
 # Path to where the json will be saved
 EXPORT_PATH = "../Data/DatePoints/Json/"
+OVERWRITE = False
 
 def main():
     n, point_array = index_points()
@@ -55,17 +57,28 @@ def index_points():
             point_attributes = [point[0], point[1], coords]
             point_array.append(point_attributes)
 
-    print("Point indexing finished. \nNum points: " + str(n))
+    print("Point indexing finished. \nNum points: " + str(n) + "\n")
     return n, point_array
 
 
 def export_to_json(n, point_array):
     f_name = EXPORT_PATH + POINT_DATA[:-4] + ".json"
+
+    if os.path.isfile(f_name):
+        if not OVERWRITE:
+            print(f_name + " - already exists, aborting...")
+            print("To enable overwriting set OVERWRITE = True")
+            return
+        else:
+            print(f_name + " - already exists, overwriting...")
+    else:
+        print("Creating new file - " + f_name)
+
     with open(f_name, 'w') as exportfile:
         json.dump(point_array, exportfile, indent=4, default=str)
         print("\n====================================================")
         print("Exported all " + str(n) + " points as json.")
-        print("New file - " + f_name)
+        print("File - " + f_name)
         print("====================================================")
 
 
